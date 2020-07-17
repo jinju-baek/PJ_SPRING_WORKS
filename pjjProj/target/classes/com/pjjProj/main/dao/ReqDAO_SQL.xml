@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="req">
+	<insert id="insertReq" parameterType="hashMap" statementType="CALLABLE">
+		EXEC UP_PJJ_REQ_INSERT #{EMPNO}, #{REQST}, #{REQET}, #{PROCSTEP}, #{REQTIME}, #{REQTYPE}
+	</insert>
+	
+	<select id="getRegHis" parameterType="hashMap" resultType="hashMap">
+		SELECT R.REQCODE, R.REQTYPE, R.REQST, R.REQET, R.PROCSTEP, R.REQTIME, E.EMPNAME, E.EMPNO, R.WCODE, E.ROLEID
+		FROM PJJ_WORK_REQ AS R
+		INNER JOIN PJJ_EMPLOYEE AS E ON R.EMPNO = E.EMPNO
+		<if test="ROLEID == 'USER'">
+			WHERE E.EMPNO = #{EMPNO}
+		</if>
+	</select>
+	
+	<update id="updateProcstep" parameterType="hashMap" statementType="CALLABLE">
+		EXEC DBO.UP_PJJ_PROCSTEP_UPDATE #{REQCODE}, #{WCODE}, #{STARTTIME}, #{ENDTIME}, #{PROCSTEP}, #{EMPNO}, #{PROCTIME}
+	</update>
+</mapper>

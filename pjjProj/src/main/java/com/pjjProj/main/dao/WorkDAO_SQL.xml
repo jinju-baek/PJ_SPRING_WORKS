@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="work">
+	<insert id="UP_PJJ_WORKTYPE_INSERT" parameterType="HashMap" statementType="CALLABLE" >
+		EXEC UP_PJJ_WORKTYPE_INSERT #{EMPNO}, #{STARTTIME}, #{ENDTIME}, #{WORKTYPE}
+	</insert>
+	
+	<select id="getStartTime" parameterType="HashMap" resultType="String">
+		SELECT STARTTIME FROM PJJ_WORK WITH(NOLOCK)
+		WHERE EMPNO = #{EMPNO} AND CONVERT(DATE, STARTTIME) = CONVERT(DATE, GETDATE())
+	</select>
+	
+	<update id="UP_PJJ_WORKTYPE_UPDATE" parameterType="HashMap">
+		EXEC UP_PJJ_WORKTYPE_UPDATE #{EMPNO}, #{STARTTIME}, #{ENDTIME}, #{WORKTYPE}
+	</update>
+
+	<select id="getEndTime" parameterType="HashMap" resultType="String">
+		SELECT ENDTIME FROM PJJ_WORK WITH(NOLOCK)
+		WHERE EMPNO = #{EMPNO} AND CONVERT(DATE, ENDTIME) = CONVERT(DATE, GETDATE())
+	</select>
+	
+	<select id="UP_JJP_CALENDAR_INFO_HIS_SELECT" parameterType="hashMap" resultType="hashMap" statementType="CALLABLE">
+        EXEC UP_JJP_CALENDAR_INFO_HIS_SELECT #{EMPNO}
+    </select>
+    
+    <select id="getStCnt" parameterType="hashMap" resultType="Integer">
+    	SELECT COUNT(*) FROM PJJ_WORK
+		WHERE CONVERT(DATE, STARTTIME) = CONVERT(DATE, #{STARTTIME})
+    </select>
+    
+    <select id="getStList" parameterType="hashMap" resultType="String">
+    	SELECT STARTTIME FROM PJJ_WORK
+    	WHERE EMPNO = #{EMPNO}
+    	ORDER BY STARTTIME DESC
+    </select>
+    
+    <select id="getWorkTime" parameterType="hashMap" resultType="hashMap">
+    	SELECT CONVERT(TIME, STARTTIME) AS orgSt, CONVERT(TIME, ENDTIME) AS orgEt FROM PJJ_WORK
+		WHERE CONVERT(DATE, STARTTIME) = CONVERT(DATE, #{STARTDATE}) 
+		<if test = "ROLEID == 'USER'">
+			AND EMPNO = #{EMPNO}
+		</if>
+    </select>
+    
+    <update id="setWorkType" parameterType="String" statementType="CALLABLE" >
+    	EXEC UP_PJJ_WORKTYPE_UPDATE
+    </update>
+</mapper>
+
+

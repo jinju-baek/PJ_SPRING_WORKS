@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="emp">
+	<select id="getEmpCnt" parameterType="String" resultType="Integer">
+		SELECT COUNT(*) FROM PJJ_EMPLOYEE
+		WHERE ROLEID = 'USER'
+	</select>
+	
+	<select id="getChkinCnt" resultType="Integer">
+		SELECT COUNT(*)
+		FROM PJJ_WORK AS W
+			INNER JOIN (SELECT EMPNO FROM PJJ_EMPLOYEE WHERE ROLEID = 'USER') AS E 
+			ON W.EMPNO = E.EMPNO
+		WHERE WORKTYPE = 'CHKIN' OR WORKTYPE = 'CHKOUT' OR WORKTYPE = 'NORM' AND CONVERT(DATE, STARTTIME) = CONVERT(DATE, GETDATE()) 
+	</select>
+	
+	<select id="getChklaterCnt" resultType="Integer">
+		SELECT COUNT(*)
+		FROM PJJ_WORK AS W
+			INNER JOIN (SELECT EMPNO FROM PJJ_EMPLOYEE WHERE ROLEID = 'USER') AS E 
+			ON W.EMPNO = E.EMPNO
+		WHERE WORKTYPE = 'CHKLATER' AND CONVERT(DATE, STARTTIME) = CONVERT(DATE, GETDATE())
+	</select>
+	
+	<select id="getChkawolCnt" resultType="Integer">
+		SELECT COUNT(*)
+		FROM PJJ_WORK AS W
+			RIGHT OUTER JOIN (SELECT EMPNO FROM PJJ_EMPLOYEE WHERE ROLEID = 'USER') AS E 
+			ON W.EMPNO = E.EMPNO AND CONVERT(DATE, STARTTIME) = CONVERT(DATE, GETDATE()) 
+		WHERE WORKTYPE = 'AWOL' OR ISNULL(STARTTIME, '') = ''
+	</select>
+	
+	<select id="getMissHis" parameterType="hashMap" resultType="hashMap">
+		<![CDATA[
+			SELECT EMPNAME, CONVERT(VARCHAR, STARTTIME, 111) AS DATE, CONVERT(VARCHAR, STARTTIME, 8) AS STARTTIME , CONVERT(VARCHAR, ENDTIME, 8) AS ENDTIME, BRANCH, JOBTITLE
+			FROM PJJ_WORK AS W INNER JOIN (SELECT * FROM PJJ_EMPLOYEE WHERE ROLEID = 'USER') AS E ON W.EMPNO = E.EMPNO
+			WHERE (ISNULL(CONVERT(VARCHAR, STARTTIME), 'NULL') = 'NULL' OR ISNULL(CONVERT(VARCHAR, ENDTIME), 'NULL') = 'NULL')			
+				AND CONVERT(DATETIME, STARTTIME) > CONVERT(DATETIME, #{startDate}) 
+				AND CONVERT(DATETIME, STARTTIME) < CONVERT(DATETIME, #{endDate} + ' 23:59:59') 	
+				AND CONVERT(DATE, STARTTIME) <> CONVERT(DATE, GETDATE()) 	
+			ORDER BY DATE DESC
+		]]>
+	</select>
+	
+	<select id="getEmpInfo" resultType="hashMap">
+		SELECT EMPNO, ID, EMPNAME, BRANCH, JOBTITLE, EMAIL, PHONE, CONVERT(VARCHAR, JOINDATE, 111) AS JOINDATE FROM PJJ_EMPLOYEE
+		WHERE ROLEID = 'USER' 
+	</select>
+	
+	<insert id="empIns" parameterType="hashMap">
+		INSERT INTO PJJ_EMPLOYEE
+		VALUES((VARCHAR, CONVERT(INT, (SELECT TOP 1 EMPNO FROM PJJ_EMPLOYEE ORDER BY EMPNO DESC)) + 1) 
+			, #{ID}, #{PW}, #{ROLEID}, #{EMPNAME} , #{BRANCH}, #{JOBTITLE}, #{EMAIL}, #{PHONE}, #{JOINDATE})
+	</insert>
+	
+	<update id="empUp" parameterType="hashMap">
+		UPDATE PJJ_EMPLOYEE
+		SET ID = #{ID}, PW = #{PW}, ROLEID = #{ROLEID}, EMPNAME = #{EMPNAME}, BRANCH = #{BRANCH}
+			, JOBTITLE = #{JOBTITLE}, EMAIL = #{EMAIL}, PHONE = #{PHONE}, JOINDATE = #{JOINDATE} 
+		WHERE EMPNO = #{EMPNO}
+	</update>
+
+	<delete id="empDel" parameterType="hashMap">
+		DELETE FROM PJJ_EMPLOYEE
+		WHERE EMPNO = #{EMPNO}	
+	</delete>
+	
+</mapper>
